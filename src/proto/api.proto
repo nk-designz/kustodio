@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package api.grpc;
+
+service Locking {
+  rpc Create(LockRequest) returns (LockResponse);
+  rpc Remove(LockRequest) returns (LockResponse);
+
+  rpc Lock(LockRequest) returns (LockResponse);
+  rpc Unlock(LockRequest) returns (LockResponse);
+}
+
+message LockRequest {
+  string name = 1;
+}
+
+message LockResponse {
+  oneof error {
+    string message = 1;
+  }
+}
