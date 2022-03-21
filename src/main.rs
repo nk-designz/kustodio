@@ -18,14 +18,11 @@ use swarm::Swarm;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    env_logger::init();
     let address = env::args_os().nth(1).unwrap().into_string().unwrap();
-    println!("{}", address);
     let peers: Vec<String> = env::args_os()
         .skip(2)
-        .map(|arg| {
-            println!("{:?}", arg);
-            arg.into_string().unwrap()
-        })
+        .map(|arg| arg.into_string().unwrap())
         .collect();
     let storage = storage::memory::Memory::new(storage::memory::Config {
         bitmap_size: 6000,
@@ -47,15 +44,15 @@ async fn main() -> Result<(), anyhow::Error> {
     .expect("Error setting Ctrl-C handler");
     let swarm_clone = Arc::clone(&swarm);
     let mut threads = Vec::new();
-    println!("Starting grpc api...");
+    info!("Starting grpc api...");
     threads.push(tokio::task::spawn(server::grpc::serve(
         "127.0.0.1:8080".parse().unwrap(),
         handler,
         swarm_clone,
     )));
-    println!("Waiting for Ctrl-C...");
+    info!("Waiting for Ctrl-C...");
     rx.recv().expect("Could not receive from channel.");
     swarm.lock().unwrap().shutdown()?;
-    println!("Got it! Exiting...");
+    info!("Got it! Exiting...");
     Ok(())
 }
