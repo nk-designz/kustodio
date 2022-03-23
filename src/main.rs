@@ -4,6 +4,7 @@ extern crate log;
 extern crate clap_derive;
 
 mod app;
+mod client;
 mod config;
 mod handler;
 mod lock;

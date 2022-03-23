@@ -644,6 +644,7 @@ dependencies = [
  "gossip",
  "hashbrown 0.12.0",
  "log",
+ "nano-id",
  "prost",
  "prost-build",
  "serde",
@@ -734,6 +735,15 @@ name = "multimap"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
+
+[[package]]
+name = "nano-id"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8368d5e9b8539aefa2364e3ef0dacc2d72702abe15ef431a6707af772306290f"
+dependencies = [
+ "getrandom 0.2.5",
+]
 
 [[package]]
 name = "nix"

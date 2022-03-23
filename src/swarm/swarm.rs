@@ -59,4 +59,8 @@ where
             Err(e) => Err(anyhow::Error::msg(e.to_string())),
         }
     }
+
+    pub fn peers(&self) -> Vec<Peer> {
+        self.gossip_service.lock().unwrap().peers().clone()
+    }
 }

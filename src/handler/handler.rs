@@ -58,10 +58,10 @@ where
                 false => {
                     match lock.lock() {
                         Some(err) => debug!("Error locking {}: {}", name, err),
-                        None => {}
+                        None => debug!("Locked {}", name),
                     };
                     match self.storage.set(name.clone(), lock) {
-                        Ok(_) => debug!("Locked {}", name),
+                        Ok(_) => debug!("Saved lock {}", name),
                         Err(err) => debug!("Could not lock {}: {}", name, err),
                     }
                 }
@@ -88,6 +88,10 @@ where
             },
             Err(err) => debug!("Could not unlock {}: {}", name, err),
         };
+    }
+    pub fn state(&self, name: String) -> Result<bool, anyhow::Error> {
+        debug!("Get state of {}", name);
+        Ok(self.storage.get(name)?.locked())
     }
 }
 

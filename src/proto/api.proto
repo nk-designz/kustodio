@@ -8,6 +8,10 @@ service Locking {
 
   rpc Lock(LockRequest) returns (LockResponse);
   rpc Unlock(LockRequest) returns (LockResponse);
+
+  rpc State(LockRequest) returns (LockResponse);
+
+  rpc Peers(PeersRequest) returns (PeersResponse);
 }
 
 message LockRequest {
@@ -15,7 +19,14 @@ message LockRequest {
 }
 
 message LockResponse {
-  oneof error {
-    string message = 1;
+  oneof body {
+    string error = 1;
+    bool state = 2;
   }
+}
+
+message PeersRequest {}
+
+message PeersResponse {
+  repeated string peers = 1;
 }

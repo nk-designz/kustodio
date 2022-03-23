@@ -3,7 +3,9 @@ use crate::lock::lock::Lock;
 use crate::proto::swarm::{
     lock_message::Action, swarm_message::Payload, LockMessage, SwarmMessage,
 };
-use crate::proto::{LockRequest, LockResponse, Locking, LockingServer};
+use crate::proto::{
+    LockRequest, LockResponse, Locking, LockingServer, PeersRequest, PeersResponse,
+};
 use crate::storage::{memory::Config, traits::Storage};
 use crate::swarm::Swarm;
 use prost::Message;
@@ -20,6 +22,31 @@ impl<S> Locking for Locker<S>
 where
     S: Storage<String, Lock, Config> + Clone + Sync + Send + 'static,
 {
+    async fn state(&self, request: Request<LockRequest>) -> Result<Response<LockResponse>, Status> {
+        Ok(Response::new(LockResponse {
+            body: Some(crate::proto::api::lock_response::Body::State(
+                match self.handler.state(request.into_inner().name) {
+                    Ok(r) => r,
+                    Err(err) => return Err(Status::new(tonic::Code::Internal, err.to_string())),
+                },
+            )),
+        }))
+    }
+    async fn peers(
+        &self,
+        _request: Request<PeersRequest>,
+    ) -> Result<Response<PeersResponse>, Status> {
+        Ok(Response::new(PeersResponse {
+            peers: self
+                .swarm
+                .lock()
+                .unwrap()
+                .peers()
+                .iter()
+                .map(|peer| peer.address().to_string())
+                .collect::<Vec<String>>(),
+        }))
+    }
     async fn create(
         &self,
         request: Request<LockRequest>,
@@ -31,6 +58,7 @@ where
             payload: Payload::LockMessage(LockMessage {
                 name: lock_name,
                 action: Action::Created.into(),
+                message_id: nano_id::base64::<21>(),
             })
             .into(),
         };
@@ -49,6 +77,7 @@ where
             payload: Payload::LockMessage(LockMessage {
                 name: lock_name,
                 action: Action::Removed.into(),
+                message_id: nano_id::base64::<21>(),
             })
             .into(),
         };
@@ -65,6 +94,7 @@ where
             payload: Payload::LockMessage(LockMessage {
                 name: lock_name,
                 action: Action::Locked.into(),
+                message_id: nano_id::base64::<21>(),
             })
             .into(),
         };
@@ -84,6 +114,7 @@ where
             payload: Payload::LockMessage(LockMessage {
                 name: lock_name,
                 action: Action::Unlocked.into(),
+                message_id: nano_id::base64::<21>(),
             })
             .into(),
         };

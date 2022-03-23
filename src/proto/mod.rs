@@ -7,6 +7,7 @@ pub mod api {
 }
 
 pub use api::{
+    locking_client::LockingClient,
     locking_server::{Locking, LockingServer},
-    LockRequest, LockResponse,
+    LockRequest, LockResponse, PeersRequest, PeersResponse,
 };

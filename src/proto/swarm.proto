@@ -15,6 +15,7 @@ message LockMessage {
     Locked = 2;
     Unlocked = 3;
   }
-  string name = 1;
-  Action action = 2;
+  string message_id = 1;
+  string name = 2;
+  Action action = 3;
 }
