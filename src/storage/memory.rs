@@ -1,6 +1,7 @@
 use super::traits::{Storage, StorageError};
 use bloomfilter::Bloom;
 use hashbrown::HashMap;
+use serde::Deserialize;
 use std::hash::Hash;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -11,6 +12,7 @@ pub struct Memory<Key, Value> {
     hash_map: Arc<Mutex<HashMap<Key, Value>>>,
 }
 
+#[derive(Deserialize)]
 pub struct Config {
     pub bitmap_size: usize,
     pub items_count: usize,

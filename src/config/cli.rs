@@ -9,18 +9,19 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Server { config_file: String },
+    Server,
     Client { server: String },
 }
 
 impl Cli {
-    pub async fn run() {
+    pub async fn run() -> Result<(), anyhow::Error> {
         let cli = Cli::parse();
         match &cli.commands {
-            Commands::Server { config_file } => {
-                App::new().serve().await.unwrap();
+            Commands::Server => {
+                App::new()?.serve().await?;
             }
             Commands::Client { server } => todo!(),
         }
+        Ok(())
     }
 }

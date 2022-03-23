@@ -1,3 +1,4 @@
+use crate::config::KustodioConfiguration;
 use crate::handler::Handler;
 use crate::server;
 use crate::storage;
@@ -8,11 +9,15 @@ use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-pub struct App {}
+pub struct App {
+    config: KustodioConfiguration,
+}
 
 impl App {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new() -> Result<Self, anyhow::Error> {
+        Ok(Self {
+            config: KustodioConfiguration::new()?,
+        })
     }
     pub async fn serve(&self) -> Result<(), anyhow::Error> {
         let address = env::args_os().nth(1).unwrap().into_string().unwrap();
