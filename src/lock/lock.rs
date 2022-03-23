@@ -7,11 +7,6 @@ pub enum State {
     Unlocked,
 }
 
-pub enum Action {
-    Lock,
-    Unlock,
-}
-
 #[derive(Clone)]
 pub struct Lock {
     state: Arc<Mutex<State>>,

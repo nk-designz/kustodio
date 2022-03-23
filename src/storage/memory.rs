@@ -12,19 +12,10 @@ pub struct Memory<Key, Value> {
     hash_map: Arc<Mutex<HashMap<Key, Value>>>,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct Config {
     pub bitmap_size: usize,
     pub items_count: usize,
-}
-
-impl Config {
-    fn default() -> Self {
-        Config {
-            bitmap_size: 6000,
-            items_count: 6000,
-        }
-    }
 }
 
 impl<Key, Value> Memory<Key, Value> {

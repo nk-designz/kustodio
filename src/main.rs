@@ -15,6 +15,6 @@ mod swarm;
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     env_logger::init();
-    config::Cli::run().await;
+    config::Cli::run().await?;
     Ok(())
 }

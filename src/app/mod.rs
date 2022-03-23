@@ -1,10 +1,10 @@
+use crate::config::file::StorageConfiguration;
 use crate::config::KustodioConfiguration;
 use crate::handler::Handler;
 use crate::server;
 use crate::storage;
 use crate::swarm::Swarm;
 use ctrlc;
-use std::env;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -14,25 +14,19 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Result<Self, anyhow::Error> {
+    pub fn new(config_path: String) -> Result<Self, anyhow::Error> {
         Ok(Self {
-            config: KustodioConfiguration::new()?,
+            config: KustodioConfiguration::new(config_path)?,
         })
     }
     pub async fn serve(&self) -> Result<(), anyhow::Error> {
-        let address = env::args_os().nth(1).unwrap().into_string().unwrap();
-        let peers: Vec<String> = env::args_os()
-            .skip(2)
-            .map(|arg| arg.into_string().unwrap())
-            .collect();
-        let storage = storage::memory::Memory::new(storage::memory::Config {
-            bitmap_size: 6000,
-            items_count: 6000,
-        });
+        let storage = match self.config.storage.clone() {
+            StorageConfiguration::Memory(config) => storage::memory::Memory::new(config),
+        };
         let handler = Handler::new(storage);
         let swarm = Arc::new(Mutex::new(Swarm::new(
-            Some(address),
-            Some(peers),
+            Some(self.config.cluster.address.clone()),
+            Some(self.config.cluster.peers.clone()),
             handler.clone(),
         )));
         swarm.lock().unwrap().start()?;

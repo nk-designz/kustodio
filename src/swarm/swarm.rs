@@ -5,7 +5,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 pub struct Swarm<Handler: UpdateHandler + 'static + Send> {
-    node_address: String,
     existing_peers: Option<Vec<Peer>>,
     gossip_service: Arc<Mutex<GossipService<Handler>>>,
     handler: Handler,
@@ -35,7 +34,6 @@ where
             address.parse().unwrap(),
         )));
         Swarm {
-            node_address: address,
             existing_peers: existing_peers,
             gossip_service: gossip_service,
             handler: handler,
