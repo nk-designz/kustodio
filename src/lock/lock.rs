@@ -26,7 +26,7 @@ impl Lock {
     }
 
     pub fn lock(&self) -> Option<LockError> {
-        match self.state.lock().unwrap().clone() {
+        match self.state.lock().ok()?.clone() {
             State::Locked => Some(Error::msg("Already locked")),
             State::Unlocked => {
                 *self.state.lock().unwrap() = State::Locked;
@@ -36,7 +36,7 @@ impl Lock {
     }
 
     pub fn unlock(&self) -> Option<LockError> {
-        match self.state.lock().unwrap().clone() {
+        match self.state.lock().ok()?.clone() {
             State::Locked => {
                 *self.state.lock().unwrap() = State::Unlocked;
                 None
