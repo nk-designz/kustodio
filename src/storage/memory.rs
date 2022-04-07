@@ -4,12 +4,12 @@ use hashbrown::HashMap;
 use serde::Deserialize;
 use std::hash::Hash;
 use std::sync::Arc;
-use std::sync::Mutex;
+use std::sync::RwLock;
 
 #[derive(Clone)]
 pub struct Memory<Key, Value> {
-    bloom_filter: Arc<Mutex<Bloom<Key>>>,
-    hash_map: Arc<Mutex<HashMap<Key, Value>>>,
+    bloom_filter: Arc<RwLock<Bloom<Key>>>,
+    hash_map: Arc<RwLock<HashMap<Key, Value>>>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -21,19 +21,19 @@ pub struct Config {
 impl<Key, Value> Memory<Key, Value> {
     pub fn new(config: Config) -> Self {
         Memory {
-            bloom_filter: Arc::new(Mutex::new(Bloom::new(
+            bloom_filter: Arc::new(RwLock::new(Bloom::new(
                 config.bitmap_size,
                 config.items_count,
             ))),
-            hash_map: Arc::new(Mutex::new(HashMap::new())),
+            hash_map: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }
-
+use std::fmt::Debug;
 impl<Key, Value> Storage<Key, Value, Config> for Memory<Key, Value>
 where
-    Key: Hash + Eq + Clone,
-    Value: Clone,
+    Key: Hash + Eq + Clone + Debug,
+    Value: Clone + Debug,
 {
     fn clone_safe(&self) -> Self {
         Memory {
@@ -42,8 +42,8 @@ where
         }
     }
     fn probe(&self, key: Key) -> bool {
-        match self.bloom_filter.lock().unwrap().check(&key) {
-            true => self.hash_map.lock().unwrap().contains_key(&key),
+        match self.bloom_filter.read().unwrap().check(&key) {
+            true => self.hash_map.read().unwrap().contains_key(&key),
             false => false,
         }
     }
@@ -51,22 +51,31 @@ where
     fn set(&self, key: Key, value: Value) -> Result<Option<Value>, StorageError> {
         match self.get(key.clone()) {
             Err(_) => {
-                self.bloom_filter.lock().unwrap().set(&key);
-                match self.hash_map.lock().unwrap().try_insert(key, value) {
+                self.bloom_filter.write().unwrap().set(&key);
+                match self.hash_map.write().unwrap().try_insert(key, value) {
                     Ok(_) => Ok(None),
-                    Err(_) => Err(anyhow::Error::msg("Storage Occupied!")),
+                    Err(err) => Err(anyhow::Error::msg(format!(
+                        "Storage Occupied! ({})",
+                        err.to_string()
+                    ))),
                 }
             }
-            Ok(old) => match self.hash_map.lock().unwrap().try_insert(key, value) {
-                Ok(_) => Ok(Some(old)),
-                Err(_) => Err(anyhow::Error::msg("Storage Occupied!")),
-            },
+            Ok(old) => {
+                self.hash_map.write().unwrap().remove(&key);
+                match self.hash_map.write().unwrap().try_insert(key, value) {
+                    Ok(_) => Ok(Some(old)),
+                    Err(err) => Err(anyhow::Error::msg(format!(
+                        "Storage Occupied! ({})",
+                        err.to_string()
+                    ))),
+                }
+            }
         }
     }
 
     fn get(&self, key: Key) -> Result<Value, StorageError> {
         match self.probe(key.clone()) {
-            true => match self.hash_map.lock().unwrap().get(&key) {
+            true => match self.hash_map.read().unwrap().get(&key) {
                 Some(value) => Ok(value.clone()),
                 None => Err(anyhow::Error::msg("Key not found.")),
             },
@@ -78,7 +87,7 @@ where
         match self.get(key.clone()) {
             Ok(value_ref) => {
                 let value = value_ref.clone();
-                self.hash_map.lock().unwrap().remove(&key);
+                self.hash_map.write().unwrap().remove(&key);
                 Ok(value)
             }
             err => err,

@@ -53,14 +53,16 @@ where
     pub fn locked(&self, name: String) {
         debug!("Locking {}", name);
         match self.storage.get(name.clone()) {
-            Ok(lock) => match lock.locked() {
+            Ok(lock) => match lock.clone().locked() {
                 true => debug!("Nothing to do. {} locked", name),
                 false => {
-                    match lock.lock() {
+                    debug!("Trying lock {}", name);
+                    let mut nu_lock = lock.clone();
+                    match nu_lock.lock() {
                         Some(err) => debug!("Error locking {}: {}", name, err),
                         None => debug!("Locked {}", name),
                     };
-                    match self.storage.set(name.clone(), lock) {
+                    match self.storage.set(name.clone(), nu_lock.to_owned()) {
                         Ok(_) => debug!("Saved lock {}", name),
                         Err(err) => debug!("Could not lock {}: {}", name, err),
                     }
@@ -73,14 +75,15 @@ where
     pub fn unlocked(&self, name: String) {
         debug!("Unlocking {}", name);
         match self.storage.get(name.clone()) {
-            Ok(lock) => match lock.locked() {
+            Ok(lock) => match lock.clone().locked() {
                 false => debug!("Nothing to do. {} unlocked", name),
                 true => {
-                    match lock.unlock() {
+                    let mut nu_lock = lock.clone();
+                    match nu_lock.unlock() {
                         Some(err) => debug!("Error unlocking {}: {}", name, err),
                         None => {}
                     };
-                    match self.storage.set(name.clone(), lock) {
+                    match self.storage.set(name.clone(), nu_lock.to_owned()) {
                         Ok(_) => debug!("Unlocked {}", name),
                         Err(err) => debug!("Could not unlock {}: {}", name, err),
                     }

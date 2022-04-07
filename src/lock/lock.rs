@@ -1,15 +1,16 @@
 use anyhow::Error;
-use std::sync::{Arc, Mutex};
+use std::fmt::Debug;
+use std::sync::Arc;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum State {
     Locked,
     Unlocked,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Lock {
-    state: Arc<Mutex<State>>,
+    state: Arc<State>,
 }
 
 pub type LockError = Error;
@@ -17,31 +18,31 @@ pub type LockError = Error;
 impl Lock {
     pub fn new() -> Self {
         Lock {
-            state: Arc::new(Mutex::new(State::Unlocked)),
+            state: Arc::new(State::Unlocked),
         }
     }
 
     pub fn locked(&self) -> bool {
-        self.state.lock().unwrap().eq(&State::Locked)
+        self.state.eq(&Arc::new(State::Locked))
     }
 
-    pub fn lock(&self) -> Option<LockError> {
-        match self.state.lock().ok()?.clone() {
-            State::Locked => Some(Error::msg("Already locked")),
-            State::Unlocked => {
-                *self.state.lock().unwrap() = State::Locked;
+    pub fn lock(&mut self) -> Option<LockError> {
+        match self.locked() {
+            true => Some(Error::msg("Already locked")),
+            false => {
+                *Arc::make_mut(&mut self.state) = State::Locked;
                 None
             }
         }
     }
 
-    pub fn unlock(&self) -> Option<LockError> {
-        match self.state.lock().ok()?.clone() {
-            State::Locked => {
-                *self.state.lock().unwrap() = State::Unlocked;
+    pub fn unlock(&mut self) -> Option<LockError> {
+        match self.locked() {
+            true => {
+                *Arc::make_mut(&mut self.state) = State::Unlocked;
                 None
             }
-            State::Unlocked => Some(Error::msg("Already unlocked")),
+            false => Some(Error::msg("Already unlocked")),
         }
     }
 }
