@@ -7,4 +7,5 @@ pub trait Storage<Key, Value> {
     fn get(&self, key: Key) -> Result<Value, StorageError>;
     fn remove(&self, key: Key) -> Result<Value, StorageError>;
     fn swap(&self, key: Key, value_reference: &mut Value) -> Result<(), StorageError>;
+    fn list(&self) -> Result<Vec<(Key, Value)>, StorageError>;
 }

@@ -2,16 +2,20 @@ syntax = "proto3";
 
 package api.grpc;
 
+import "google/protobuf/empty.proto";
+
 service Locking {
   rpc Create(LockRequest) returns (LockResponse);
   rpc Remove(LockRequest) returns (LockResponse);
+  rpc List(google.protobuf.Empty) returns (ListResponse);
 
   rpc Lock(LockRequest) returns (LockResponse);
   rpc Unlock(LockRequest) returns (LockResponse);
 
   rpc State(LockRequest) returns (LockResponse);
+  rpc Watch(google.protobuf.Empty) returns (stream LockEvent);
 
-  rpc Peers(PeersRequest) returns (PeersResponse);
+  rpc Peers(google.protobuf.Empty) returns (PeersResponse);
 }
 
 message LockRequest {
@@ -25,8 +29,25 @@ message LockResponse {
   }
 }
 
-message PeersRequest {}
+message LockEvent {
+  enum Status {
+    Created = 0;
+    Removed = 1;
+    Unlocked = 2;
+    Locked = 3;
+  }
+  string name = 1;
+  Status status = 2;
+}
 
 message PeersResponse {
   repeated string peers = 1;
+}
+
+message ListResponse {
+  message Lock {
+    string name = 1;
+    bool state = 2;
+  }
+  repeated Lock locks = 1;
 }

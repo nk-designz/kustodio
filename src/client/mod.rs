@@ -1,4 +1,6 @@
-use crate::proto::{LockRequest, LockResponse, LockingClient, PeersRequest, PeersResponse};
+use crate::proto::{
+    api::list_response::Lock, ListResponse, LockRequest, LockResponse, LockingClient, PeersResponse,
+};
 use std::sync::{Arc, Mutex, MutexGuard};
 use tonic::transport::Channel;
 
@@ -31,6 +33,11 @@ impl<'a> Client {
             .await?
             .into_inner())
     }
+
+    pub async fn list(&self) -> Result<ListResponse, anyhow::Error> {
+        Ok(self.get_client_lock()?.list(()).await?.into_inner())
+    }
+
     pub async fn lock(&self, name: String) -> Result<LockResponse, anyhow::Error> {
         Ok(self
             .get_client_lock()?
@@ -55,12 +62,6 @@ impl<'a> Client {
             .into_inner())
     }
     pub async fn peers(&self) -> Result<PeersResponse, anyhow::Error> {
-        Ok(self
-            .client
-            .lock()
-            .unwrap()
-            .peers(PeersRequest {})
-            .await?
-            .into_inner())
+        Ok(self.client.lock().unwrap().peers(()).await?.into_inner())
     }
 }

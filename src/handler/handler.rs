@@ -1,8 +1,12 @@
+use super::event::Event;
 use crate::lock::lock::Lock;
 use crate::proto::swarm;
 use crate::storage::traits::Storage;
 use gossip::{Update, UpdateHandler};
 use prost::Message;
+use std::sync::{Arc, Mutex};
+use tokio::sync::{mpsc, mpsc::Sender};
+use tokio_stream::wrappers::ReceiverStream;
 
 macro_rules! ok_or_log {
     ( $e:expr ) => {
@@ -19,6 +23,7 @@ macro_rules! ok_or_log {
 #[derive(Clone)]
 pub struct Handler<Store: Clone> {
     storage: Store,
+    sender: Arc<Mutex<Vec<Sender<Event>>>>,
 }
 
 impl<Store> Handler<Store>
@@ -28,6 +33,7 @@ where
     pub fn new(storage: Store) -> Self {
         Handler {
             storage: storage.clone(),
+            sender: Arc::new(Mutex::new(vec![])),
         }
     }
 
@@ -37,7 +43,10 @@ where
             debug!("lock with name {} already exists", name);
         }
         match self.storage.set(name.clone(), Lock::new()) {
-            Ok(_) => debug!("Lock with name {} created", name),
+            Ok(_) => {
+                self.send(Event::Created(name.clone()));
+                debug!("Lock with name {} created", name)
+            }
             Err(err) => warn!("Could not create lock with name {}: {}", name, err),
         };
     }
@@ -45,9 +54,16 @@ where
     pub fn removed(&self, name: String) {
         debug!("Removing lock with name: {}", name);
         match self.storage.remove(name.clone()) {
-            Ok(_) => debug!("removed lock with name {}", name),
+            Ok(_) => {
+                self.send(Event::Removed(name.clone()));
+                debug!("removed lock with name {}", name)
+            }
             Err(err) => debug!("could not remove lock with name {}: {}", name, err),
         }
+    }
+
+    pub fn list(&self) -> Result<Vec<(String, Lock)>, anyhow::Error> {
+        Ok(self.storage.list()?)
     }
 
     pub fn locked(&self, name: String) {
@@ -59,7 +75,10 @@ where
                     debug!("Trying lock {}", name);
                     let mut nu_lock = lock.clone();
                     match nu_lock.lock() {
-                        Some(err) => debug!("Error locking {}: {}", name, err),
+                        Some(err) => {
+                            self.send(Event::Locked(name.clone()));
+                            debug!("Error locking {}: {}", name, err)
+                        }
                         None => debug!("Locked {}", name),
                     };
                     match self.storage.set(name.clone(), nu_lock.to_owned()) {
@@ -80,7 +99,10 @@ where
                 true => {
                     let mut nu_lock = lock.clone();
                     match nu_lock.unlock() {
-                        Some(err) => debug!("Error unlocking {}: {}", name, err),
+                        Some(err) => {
+                            self.send(Event::Unlocked(name.clone()));
+                            debug!("Error unlocking {}: {}", name, err)
+                        }
                         None => {}
                     };
                     match self.storage.set(name.clone(), nu_lock.to_owned()) {
@@ -95,6 +117,32 @@ where
     pub fn state(&self, name: String) -> Result<bool, anyhow::Error> {
         debug!("Get state of {}", name);
         Ok(self.storage.get(name)?.locked())
+    }
+
+    fn send(&self, event: Event) {
+        for sender in match self.sender.lock() {
+            Ok(sender) => sender,
+            Err(err) => {
+                debug!("Could not send: {}", err.to_string());
+                return;
+            }
+        }
+        .iter()
+        {
+            match sender.blocking_send(event) {
+                Ok(_) => {}
+                Err(err) => debug!("Could not send: {}", err.to_string()),
+            };
+        }
+    }
+
+    pub fn watch(&self, size: usize) -> Result<ReceiverStream<Event>, anyhow::Error> {
+        let (tx, rx) = mpsc::channel(size);
+        self.sender
+            .lock()
+            .map_err(|err| anyhow::Error::msg(err.to_string()))?
+            .push(tx);
+        Ok(tokio_stream::wrappers::ReceiverStream::new(rx))
     }
 }
 

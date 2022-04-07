@@ -1,0 +1,10 @@
+[cluster]
+address = "127.0.0.1:10001"
+peers = ["127.0.0.1:9001", "127.0.0.1:8001"]
+
+[api]
+address = "127.0.0.1:9000"
+
+[storage]
+type = "Memory"
+options = { bitmap_size = 6000, items_count = 6000 }

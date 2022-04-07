@@ -40,6 +40,7 @@ pub enum ClientArgs {
     State,
     Create,
     Remove,
+    List,
 }
 
 impl Cli {
@@ -128,6 +129,19 @@ impl Cli {
                                 .await
                                 .map(|_| { "Created" })?
                         )
+                    }
+                    ClientArgs::List => {
+                        println!("List:");
+                        for lock in client.list().await?.locks {
+                            println!(
+                                "- {}: {}",
+                                lock.name,
+                                match lock.state {
+                                    true => "Locked",
+                                    false => "Unlocked",
+                                }
+                            )
+                        }
                     }
                 }
             }

@@ -100,4 +100,14 @@ where
         }
         Ok(())
     }
+
+    fn list(&self) -> Result<Vec<(Key, Value)>, StorageError> {
+        Ok(self
+            .hash_map
+            .read()
+            .unwrap()
+            .iter()
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect())
+    }
 }
