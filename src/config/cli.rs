@@ -1,5 +1,6 @@
 use crate::app::App;
 use crate::client::Client;
+use crate::proto::api::lock_response::Body;
 use clap::Parser;
 use sysinfo::{ProcessExt, Signal, System, SystemExt};
 
@@ -28,7 +29,7 @@ pub struct ClientCommands {
     pub server: String,
     #[clap(arg_enum)]
     pub command: ClientArgs,
-    pub lock: String,
+    pub lock: Option<String>,
 }
 
 #[derive(Clone, ArgEnum)]
@@ -65,21 +66,79 @@ impl Cli {
             Commands::Client(config) => {
                 let client = Client::new(config.server.clone()).await?;
                 match config.command {
-                    ClientArgs::Lock => println!("{:?}", client.lock(config.lock.clone()).await?),
-                    ClientArgs::Unlock => {
-                        println!("{:?}", client.unlock(config.lock.clone()).await?)
+                    ClientArgs::Lock => {
+                        println!(
+                            "{}",
+                            client
+                                .lock(get_lock_or_fail(config)?)
+                                .await
+                                .map(|_| { "Ok" })?
+                        )
                     }
-                    ClientArgs::Peers => println!("{:?}", client.peers().await?),
-                    ClientArgs::State => println!("{:?}", client.state(config.lock.clone()).await?),
+                    ClientArgs::Unlock => {
+                        println!(
+                            "{}",
+                            client
+                                .unlock(get_lock_or_fail(config)?)
+                                .await
+                                .map(|_| { "Ok" })?
+                        )
+                    }
+                    ClientArgs::Peers => {
+                        println!("Peers:");
+                        client.peers().await.map(|res| {
+                            for peer in res.peers.clone() {
+                                println!("- {}", peer)
+                            }
+                        })?;
+                    }
+                    ClientArgs::State => {
+                        println!(
+                            "{}",
+                            match client
+                                .state(get_lock_or_fail(config)?)
+                                .await
+                                .map(|res| { res.body })?
+                            {
+                                None => String::new(),
+                                Some(body) => match body {
+                                    Body::Error(err) => err,
+                                    Body::State(state) => match state {
+                                        true => String::from("Locked"),
+                                        false => String::from("Unlocked"),
+                                    },
+                                },
+                            }
+                        )
+                    }
                     ClientArgs::Remove => {
-                        println!("{:?}", client.remove(config.lock.clone()).await?)
+                        println!(
+                            "{}",
+                            client
+                                .remove(get_lock_or_fail(config)?)
+                                .await
+                                .map(|_| { "Ok" })?
+                        )
                     }
                     ClientArgs::Create => {
-                        println!("{:?}", client.create(config.lock.clone()).await?)
+                        println!(
+                            "{}",
+                            client
+                                .create(get_lock_or_fail(config)?)
+                                .await
+                                .map(|_| { "Created" })?
+                        )
                     }
                 }
             }
         }
         Ok(())
+    }
+}
+
+fn get_lock_or_fail(config: &ClientCommands) -> Result<String, anyhow::Error> {
+    match config.lock.clone() {
+        Some(lock) => Ok(lock),
+        None => return Err(anyhow::Error::msg("No lock specified")),
     }
 }
