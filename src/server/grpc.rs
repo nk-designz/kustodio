@@ -6,13 +6,13 @@ use crate::proto::swarm::{
 use crate::proto::{
     LockRequest, LockResponse, Locking, LockingServer, PeersRequest, PeersResponse,
 };
-use crate::storage::{memory::Config, traits::Storage};
+use crate::storage::traits::Storage;
 use crate::swarm::Swarm;
 use prost::Message;
 use std::sync::{Arc, Mutex};
 use tonic::{transport::Server, Request, Response, Status};
 
-pub struct Locker<S: Storage<String, Lock, Config> + Clone + Send + 'static> {
+pub struct Locker<S: Storage<String, Lock> + Clone + Send + 'static> {
     handler: Handler<S>,
     swarm: Arc<Mutex<Swarm<Handler<S>>>>,
 }
@@ -20,7 +20,7 @@ pub struct Locker<S: Storage<String, Lock, Config> + Clone + Send + 'static> {
 #[tonic::async_trait]
 impl<S> Locking for Locker<S>
 where
-    S: Storage<String, Lock, Config> + Clone + Sync + Send + 'static,
+    S: Storage<String, Lock> + Clone + Sync + Send + 'static,
 {
     async fn state(&self, request: Request<LockRequest>) -> Result<Response<LockResponse>, Status> {
         Ok(Response::new(LockResponse {
@@ -126,7 +126,7 @@ where
     }
 }
 
-pub async fn serve<S: Storage<String, Lock, Config> + Clone + Send + Sync + 'static>(
+pub async fn serve<S: Storage<String, Lock> + Clone + Send + Sync + 'static>(
     addr: std::net::SocketAddr,
     handler: Handler<S>,
     swarm: Arc<Mutex<Swarm<Handler<S>>>>,

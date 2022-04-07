@@ -41,7 +41,7 @@ impl App {
         let mut threads = Vec::new();
         info!("Starting grpc api...");
         threads.push(tokio::task::spawn(server::grpc::serve(
-            "127.0.0.1:8080".parse().unwrap(),
+            self.config.api.address.parse().unwrap(),
             handler,
             swarm_clone,
         )));

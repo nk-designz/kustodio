@@ -1,6 +1,6 @@
 use crate::lock::lock::Lock;
 use crate::proto::swarm;
-use crate::storage::{memory::Config, traits::Storage};
+use crate::storage::traits::Storage;
 use gossip::{Update, UpdateHandler};
 use prost::Message;
 
@@ -23,7 +23,7 @@ pub struct Handler<Store: Clone> {
 
 impl<Store> Handler<Store>
 where
-    Store: Storage<String, Lock, Config> + Clone,
+    Store: Storage<String, Lock> + Clone,
 {
     pub fn new(storage: Store) -> Self {
         Handler {
@@ -100,7 +100,7 @@ where
 
 impl<Store> UpdateHandler for Handler<Store>
 where
-    Store: Storage<String, Lock, Config> + Clone,
+    Store: Storage<String, Lock> + Clone,
 {
     fn on_update(&self, update: Update) {
         match ok_or_log!(swarm::SwarmMessage::decode(&update.content()[..])).payload {

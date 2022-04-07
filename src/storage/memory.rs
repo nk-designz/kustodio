@@ -30,7 +30,7 @@ impl<Key, Value> Memory<Key, Value> {
     }
 }
 use std::fmt::Debug;
-impl<Key, Value> Storage<Key, Value, Config> for Memory<Key, Value>
+impl<Key, Value> Storage<Key, Value> for Memory<Key, Value>
 where
     Key: Hash + Eq + Clone + Debug,
     Value: Clone + Debug,

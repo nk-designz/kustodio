@@ -1,6 +1,6 @@
 pub type StorageError = anyhow::Error;
 
-pub trait Storage<Key, Value, Config> {
+pub trait Storage<Key, Value> {
     fn clone_safe(&self) -> Self;
     fn probe(&self, key: Key) -> bool;
     fn set(&self, key: Key, value: Value) -> Result<Option<Value>, StorageError>;
