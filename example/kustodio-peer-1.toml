@@ -3,7 +3,8 @@ address = "127.0.0.1:8001"
 peers = ["127.0.0.1:9001", "127.0.0.1:10001"]
 
 [api]
-address = "127.0.0.1:9090"
+grpc_address = "127.0.0.1:9090"
+http_address = "127.0.0.1:4080"
 
 [storage]
 type = "Memory"

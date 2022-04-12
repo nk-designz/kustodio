@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Kustodio</title>
+  </head>
+  <body>
+    <script type="module">
+      import init, {run_app} from "./pkg/ui.js";
+      init()
+        .then(() => {
+          run_app()
+        });
+    </script>
+  </body>
+</html>

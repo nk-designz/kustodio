@@ -27,7 +27,12 @@ crossbeam = "0.8.1"
 futures = "0.3.21"
 tokio-stream = { version = "0.1.8", features = ["sync"]}
 futures-core = "0.3.21"
+hyper = "0.14.18"
+rust-embed = { version = "6.3.0", features = ["debug-embed"]}
+http = "0.2.6"
+mime_guess = "2.0.4"
 
 [build-dependencies]
 prost-build = "*"
 tonic-build = "0.6"
+wasm-pack = "*"

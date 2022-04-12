@@ -5,6 +5,7 @@ use crate::storage::traits::Storage;
 use gossip::{Update, UpdateHandler};
 use prost::Message;
 use std::sync::{Arc, Mutex};
+use tokio::runtime::Handle;
 use tokio::sync::{mpsc, mpsc::Sender};
 use tokio_stream::wrappers::ReceiverStream;
 
@@ -75,16 +76,14 @@ where
                     debug!("Trying lock {}", name);
                     let mut nu_lock = lock.clone();
                     match nu_lock.lock() {
-                        Some(err) => {
-                            self.send(Event::Locked(name.clone()));
-                            debug!("Error locking {}: {}", name, err)
-                        }
+                        Some(err) => debug!("Error locking {}: {}", name, err),
                         None => debug!("Locked {}", name),
                     };
                     match self.storage.set(name.clone(), nu_lock.to_owned()) {
                         Ok(_) => debug!("Saved lock {}", name),
                         Err(err) => debug!("Could not lock {}: {}", name, err),
                     }
+                    self.send(Event::Locked(name.clone()));
                 }
             },
             Err(err) => debug!("Could not lock {}: {}", name, err),
@@ -99,16 +98,14 @@ where
                 true => {
                     let mut nu_lock = lock.clone();
                     match nu_lock.unlock() {
-                        Some(err) => {
-                            self.send(Event::Unlocked(name.clone()));
-                            debug!("Error unlocking {}: {}", name, err)
-                        }
+                        Some(err) => debug!("Error unlocking {}: {}", name, err),
                         None => {}
                     };
                     match self.storage.set(name.clone(), nu_lock.to_owned()) {
                         Ok(_) => debug!("Unlocked {}", name),
                         Err(err) => debug!("Could not unlock {}: {}", name, err),
-                    }
+                    };
+                    self.send(Event::Unlocked(name.clone()));
                 }
             },
             Err(err) => debug!("Could not unlock {}: {}", name, err),
@@ -120,20 +117,24 @@ where
     }
 
     fn send(&self, event: Event) {
-        for sender in match self.sender.lock() {
-            Ok(sender) => sender,
-            Err(err) => {
-                debug!("Could not send: {}", err.to_string());
-                return;
+        let handle = Handle::current();
+        let handler = self.clone();
+        handle.spawn_blocking(move || {
+            for sender in match handler.sender.lock() {
+                Ok(sender) => sender,
+                Err(err) => {
+                    debug!("Could not send: {}", err.to_string());
+                    return;
+                }
             }
-        }
-        .iter()
-        {
-            match sender.blocking_send(event) {
-                Ok(_) => {}
-                Err(err) => debug!("Could not send: {}", err.to_string()),
-            };
-        }
+            .iter()
+            {
+                match sender.blocking_send(event.to_owned()) {
+                    Ok(_) => {}
+                    Err(err) => debug!("Could not send: {}", err.to_string()),
+                };
+            }
+        });
     }
 
     pub fn watch(&self, size: usize) -> Result<ReceiverStream<Event>, anyhow::Error> {

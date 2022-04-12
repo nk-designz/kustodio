@@ -41,9 +41,13 @@ impl App {
         let mut threads = Vec::new();
         info!("Starting grpc api...");
         threads.push(tokio::task::spawn(server::grpc::serve(
-            self.config.api.address.parse().unwrap(),
+            self.config.api.grpc_address.parse().unwrap(),
             handler,
             swarm_clone,
+        )));
+        info!("Starting http server...");
+        threads.push(tokio::task::spawn(server::http::serve(
+            self.config.api.http_address.parse().unwrap(),
         )));
         info!("Waiting for Ctrl-C...");
         rx.recv().expect("Could not receive from channel.");

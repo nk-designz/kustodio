@@ -41,6 +41,7 @@ pub enum ClientArgs {
     Create,
     Remove,
     List,
+    Watch,
 }
 
 impl Cli {
@@ -141,6 +142,18 @@ impl Cli {
                                     false => "Unlocked",
                                 }
                             )
+                        }
+                    }
+                    ClientArgs::Watch => {
+                        println!("Watching stream of changes:");
+                        let mut event_stream = client.watch().await?;
+                        while let Some(event) = event_stream.message().await? {
+                            println!(
+                                "\tLock: {}, State: {:?}",
+                                event.name,
+                                crate::proto::api::lock_event::Status::from_i32(event.status)
+                                    .unwrap()
+                            );
                         }
                     }
                 }

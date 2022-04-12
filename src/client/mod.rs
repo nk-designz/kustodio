@@ -1,21 +1,19 @@
 use crate::proto::{
-    api::list_response::Lock, ListResponse, LockRequest, LockResponse, LockingClient, PeersResponse,
+    ListResponse, LockEvent, LockRequest, LockResponse, LockingClient, PeersResponse,
 };
 use std::sync::{Arc, Mutex, MutexGuard};
-use tonic::transport::Channel;
+use tonic::{transport::Channel, Streaming};
 
-pub struct Client {
-    client: Arc<Mutex<LockingClient<Channel>>>,
-}
+pub struct Client(Arc<Mutex<LockingClient<Channel>>>);
 
 impl<'a> Client {
     pub async fn new(server_address: String) -> Result<Self, anyhow::Error> {
-        Ok(Client {
-            client: Arc::new(Mutex::new(LockingClient::connect(server_address).await?)),
-        })
+        Ok(Client(Arc::new(Mutex::new(
+            LockingClient::connect(server_address).await?,
+        ))))
     }
     fn get_client_lock(&'a self) -> Result<MutexGuard<'a, LockingClient<Channel>>, anyhow::Error> {
-        Ok(self.client.lock().map_err(|err| {
+        Ok(self.0.lock().map_err(|err| {
             anyhow::Error::msg(format!("Client Lock Error: {:?}", err.to_string()))
         })?)
     }
@@ -54,14 +52,16 @@ impl<'a> Client {
     }
     pub async fn state(&self, name: String) -> Result<LockResponse, anyhow::Error> {
         Ok(self
-            .client
-            .lock()
-            .unwrap()
+            .get_client_lock()?
             .state(LockRequest { name })
             .await?
             .into_inner())
     }
     pub async fn peers(&self) -> Result<PeersResponse, anyhow::Error> {
-        Ok(self.client.lock().unwrap().peers(()).await?.into_inner())
+        Ok(self.get_client_lock()?.peers(()).await?.into_inner())
+    }
+
+    pub async fn watch(&self) -> Result<Streaming<LockEvent>, anyhow::Error> {
+        Ok(self.get_client_lock()?.watch(()).await?.into_inner())
     }
 }

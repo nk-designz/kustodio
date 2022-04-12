@@ -18,7 +18,8 @@ pub struct ClusterConfiguration {
 
 #[derive(Clone, Deserialize)]
 pub struct ApiConfiguration {
-    pub address: String,
+    pub grpc_address: String,
+    pub http_address: String,
 }
 
 #[derive(Clone, Deserialize)]

@@ -4,6 +4,7 @@ extern crate log;
 extern crate clap_derive;
 
 mod app;
+mod cli;
 mod client;
 mod config;
 mod handler;
@@ -16,6 +17,6 @@ mod swarm;
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     env_logger::init();
-    config::Cli::run().await?;
+    cli::Cli::run().await?;
     Ok(())
 }
