@@ -177,16 +177,13 @@ pub async fn serve<S: Storage<String, Lock> + Clone + Send + Sync + 'static>(
     addr: std::net::SocketAddr,
     handler: Handler<S>,
     swarm: Arc<Mutex<Swarm<Handler<S>>>>,
-) -> Option<anyhow::Error> {
-    match Server::builder()
+) -> Result<(), anyhow::Error> {
+    Server::builder()
         .add_service(LockingServer::new(Locker {
             handler: handler,
             swarm: swarm,
         }))
         .serve(addr)
-        .await
-    {
-        Err(err) => Some(anyhow::Error::new(err)),
-        Ok(_) => None,
-    }
+        .await?;
+    Ok(())
 }

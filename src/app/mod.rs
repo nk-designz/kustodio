@@ -48,6 +48,7 @@ impl App {
         info!("Starting http server...");
         threads.push(tokio::task::spawn(server::http::serve(
             self.config.api.http_address.parse().unwrap(),
+            self.config.clone(),
         )));
         info!("Waiting for Ctrl-C...");
         rx.recv().expect("Could not receive from channel.");

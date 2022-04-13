@@ -1479,6 +1479,7 @@ dependencies = [
  "prost-build",
  "rust-embed",
  "serde",
+ "serde_json",
  "sysinfo",
  "tokio 1.17.0",
  "tokio-stream",

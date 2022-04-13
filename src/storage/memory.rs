@@ -1,7 +1,7 @@
 use super::traits::{Storage, StorageError};
 use bloomfilter::Bloom;
 use hashbrown::HashMap;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::hash::Hash;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -12,7 +12,7 @@ pub struct Memory<Key, Value> {
     hash_map: Arc<RwLock<HashMap<Key, Value>>>,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Config {
     pub bitmap_size: usize,
     pub items_count: usize,

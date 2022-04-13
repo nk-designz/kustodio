@@ -14,6 +14,10 @@ default = ["console_error_panic_hook"]
 wasm-bindgen = "0.2.63"
 yew = "*"
 yew-router = "0.16"
+weblog = "0.3.0"
+tracing = "0.1.33"
+tracing-wasm = "0.2.1"
+ybc = "0.2"
 
 console_error_panic_hook = { version = "0.1.6", optional = true }
 wee_alloc = { version = "0.4.5", optional = true }

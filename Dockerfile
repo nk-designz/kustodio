@@ -5,6 +5,10 @@ WORKDIR /kustodio
 ADD Cargo.toml Cargo.toml
 ADD Cargo.lock Cargo.lock
 COPY src src
+RUN mkdir ui
+ADD ui/Cargo.toml ui/Cargo.toml
+ADD ui/Cargo.lock ui/Cargo.lock
+COPY ui/src ui/src
 RUN cargo build --release
 
 FROM scratch

@@ -5,6 +5,11 @@ edition = "2021"
 
 build = "src/build.rs"
 
+[[bin]]
+name = "kustodio"
+test = false
+bench = false
+
 [dependencies]
 gossip = "0.0.3"
 env_logger = "*"
@@ -31,6 +36,7 @@ hyper = "0.14.18"
 rust-embed = { version = "6.3.0", features = ["debug-embed"]}
 http = "0.2.6"
 mime_guess = "2.0.4"
+serde_json = "1.0.79"
 
 [build-dependencies]
 prost-build = "*"

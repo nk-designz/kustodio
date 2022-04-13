@@ -1,35 +1,45 @@
+use crate::pages::*;
+use tracing::info;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
 pub enum Msg {}
 
-#[derive(Clone, Routable, PartialEq)]
+#[derive(Clone, Routable, PartialEq, Debug)]
 enum Route {
     #[at("/")]
     Home,
-    #[at("/secure")]
-    Secure,
+    #[at("/locks")]
+    Locks,
+    #[at("/system")]
+    System,
     #[not_found]
     #[at("/404")]
     NotFound,
 }
 
 fn switch(routes: &Route) -> Html {
+    info!("Switching to route {:?}", routes);
     match routes {
-        Route::Home => html! { <h1>{ "Home" }</h1> },
-        Route::Secure => html! { <h1>{"Not Home"}</h1> },
-        Route::NotFound => html! { <h1>{ "404" }</h1> },
+        Route::Home => html! { <Home/> },
+        Route::NotFound => html! { <NotFound/> },
+        Route::Locks => html! { <Locks/> },
+        Route::System => html! { <System/> },
     }
 }
 
-pub struct App {}
+pub struct App {
+    server_configuration: Option<String>,
+}
 
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
+        Self {
+            server_configuration: None,
+        }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -41,7 +51,20 @@ impl Component for App {
         let link = ctx.link();
         html! {
             <>
-                <h1>{"Kustodio"}</h1>
+                <nav class="navbar is-black" role="navigation" aria-label="main navigation">
+                    <div class="navbar-brand">
+                        <a class="navbar-item" href="/">
+                            <h1><b>{"Kustodio"}</b></h1>
+                        </a>
+                    </div>
+                    <div id="navbar-menu" class="navbar-menu">
+                        <div class="navbar-start">
+                            <a class="navbar-item" href="/">{"Home"}</a>
+                            <a class="navbar-item" href="/locks">{"Locks"}</a>
+                            <a class="navbar-item" href="/system">{"System"}</a>
+                        </div>
+                    </div>
+                </nav>
                 <BrowserRouter>
                     <Switch<Route> render={Switch::render(switch)} />
                 </BrowserRouter>

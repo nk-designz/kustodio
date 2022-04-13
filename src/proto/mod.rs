@@ -1,3 +1,4 @@
+#[cfg(target_family = "unix")]
 pub mod swarm {
     include!(concat!(env!("OUT_DIR"), "/swarm.messages.rs"));
 }

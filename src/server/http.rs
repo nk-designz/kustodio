@@ -1,8 +1,10 @@
+use crate::config::KustodioConfiguration;
 use http::StatusCode;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Request, Response, Server};
 use rust_embed::RustEmbed;
-use std::{convert::Infallible, net::SocketAddr, path::Path};
+use std::borrow::Borrow;
+use std::{convert::Infallible, net::SocketAddr, path::Path, sync::Arc};
 
 const INDEX: &str = "index.html";
 
@@ -10,14 +12,20 @@ const INDEX: &str = "index.html";
 #[folder = "ui/target/build"]
 struct UIAssets;
 
-async fn handle(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+async fn handle(req: Request<Body>, config: Arc<String>) -> Result<Response<Body>, Infallible> {
     let builder = Response::builder();
     let req_path = req.uri().path();
     info!("Serving {}", req_path);
-    let path = Path::new(if req_path == "/" {
-        "/index.html"
-    } else {
-        req_path
+    let path = Path::new(match req_path {
+        "/" => "/index.html",
+        "/metrics" => todo!(),
+        "/config" => {
+            return Ok(builder
+                .header("Content-Type", "application/json")
+                .body((config.borrow() as &String).clone().into())
+                .unwrap())
+        }
+        _ => req_path,
     });
     let mime = mime_guess::from_path(path);
     Ok(
@@ -41,14 +49,15 @@ async fn handle(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     )
 }
 
-pub async fn serve(addr: SocketAddr) -> Option<anyhow::Error> {
+pub async fn serve(addr: SocketAddr, config: KustodioConfiguration) -> Result<(), anyhow::Error> {
     for i in UIAssets::iter() {
         info!("{}", i);
     }
-    let sf = make_service_fn(|_| async { Ok::<_, Infallible>(service_fn(handle)) });
-    let server = Server::bind(&addr).serve(sf);
-    match server.await {
-        Ok(_) => None,
-        Err(err) => Some(anyhow::Error::new(err)),
-    }
+    let context = Arc::new(serde_json::to_string(&config)?);
+    let service = make_service_fn(move |_| {
+        let context = context.clone();
+        async { Ok::<_, Infallible>(service_fn(move |req| handle(req, context.clone()))) }
+    });
+    Server::bind(&addr).serve(service).await?;
+    Ok(())
 }
