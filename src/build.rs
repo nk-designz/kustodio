@@ -6,35 +6,31 @@ use wasm_pack::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Build Protobufs ===");
-    if cfg!(target_arch = "x86") {
-        prost_build::compile_protos(&["src/proto/swarm.proto"], &["src/proto"])?;
-    }
+    prost_build::compile_protos(&["src/proto/swarm.proto"], &["src/proto"])?;
     tonic_build::compile_protos("src/proto/api.proto")?;
 
-    if cfg!(target_arch = "x86") {
-        println!("=== Build UI ===");
-        fs::create_dir_all("ui/target/build/pkg")?;
-        for file in fs::read_dir("ui")?
-            .map(|entry| entry.unwrap().path())
-            .filter(|path| match path.extension() {
-                None => false,
-                Some(ext) => ext == "html",
-            })
-        {
-            println!("Found Page {:#?}", file.clone());
-            fs::copy(
-                file.clone(),
-                format!(
-                    "ui/target/build/{}",
-                    file.file_name().expect("No file name").to_str().unwrap()
-                ),
-            )?;
-        }
-        let mut build_opt = BuildOptions::default();
-        build_opt.path = Some(PathBuf::new().join("ui"));
-        build_opt.out_dir = String::from("target/build/pkg");
-        build_opt.target = Target::Web;
-        run_wasm_pack(Command::Build(build_opt))?;
+    println!("=== Build UI ===");
+    fs::create_dir_all("ui/target/build/pkg")?;
+    for file in fs::read_dir("ui")?
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| match path.extension() {
+            None => false,
+            Some(ext) => ext == "html",
+        })
+    {
+        println!("Found Page {:#?}", file.clone());
+        fs::copy(
+            file.clone(),
+            format!(
+                "ui/target/build/{}",
+                file.file_name().expect("No file name").to_str().unwrap()
+            ),
+        )?;
     }
+    let mut build_opt = BuildOptions::default();
+    build_opt.path = Some(PathBuf::new().join("ui"));
+    build_opt.out_dir = String::from("target/build/pkg");
+    build_opt.target = Target::Web;
+    run_wasm_pack(Command::Build(build_opt))?;
     Ok(())
 }
