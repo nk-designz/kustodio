@@ -24,7 +24,7 @@ impl Component for Home {
         let link = ctx.link();
         html! {
             <>
-                 { new_hero("Home", "Everything in one place", "is-white") }
+                 { new_hero("Home", "Everything in one place", "is-light") }
             </>
         }
     }

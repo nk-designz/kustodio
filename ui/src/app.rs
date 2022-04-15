@@ -53,7 +53,7 @@ impl Component for App {
             <>
                 <nav class="navbar is-black" role="navigation" aria-label="main navigation">
                     <div class="navbar-brand">
-                        <a class="navbar-item" href="/">
+                        <a class="navbar-item" href="https://github.com/nk-designz/kustodio">
                             <h1><b>{"Kustodio"}</b></h1>
                         </a>
                     </div>
