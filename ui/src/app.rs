@@ -1,9 +1,13 @@
-use crate::pages::*;
-use tracing::info;
+use crate::{client::Client, pages::*};
+use anyhow::Error;
+use tracing::*;
+use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-pub enum Msg {}
+pub enum Msg {
+    ClientInit(Result<Client, String>),
+}
 
 #[derive(Clone, Routable, PartialEq, Debug)]
 enum Route {
@@ -18,37 +22,67 @@ enum Route {
     NotFound,
 }
 
-fn switch(routes: &Route) -> Html {
-    info!("Switching to route {:?}", routes);
-    match routes {
-        Route::Home => html! { <Home/> },
-        Route::NotFound => html! { <NotFound/> },
-        Route::Locks => html! { <Locks/> },
-        Route::System => html! { <System/> },
+#[derive(PartialEq, Clone)]
+pub struct SwitchProps {
+    client: Client,
+}
+
+fn switch(_props: SwitchProps) -> impl Fn(&Route) -> Html {
+    move |route| {
+        info!("Switching to route {:?}", route);
+        match route {
+            Route::Home => html! { <Home  /> },
+            Route::NotFound => html! { <NotFound /> },
+            Route::Locks => html! { <Locks /> },
+            Route::System => html! { <System /> },
+        }
     }
 }
 
+#[derive(Default)]
 pub struct App {
-    server_configuration: Option<String>,
+    client: Option<Client>,
+    error: Option<Error>,
 }
 
 impl Component for App {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            server_configuration: None,
-        }
+    fn create(ctx: &Context<Self>) -> Self {
+        let link = ctx.link().clone();
+        spawn_local(async move {
+            info!("Creating client");
+            let client = match Client::auto().await {
+                Ok(client) => Ok(client.clone()),
+                Err(err) => Err(err.to_string()),
+            };
+            link.callback(move |_: Msg| Msg::ClientInit(client.to_owned()));
+        });
+        Self::default()
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        false
+        match msg {
+            Msg::ClientInit(client_result) => match client_result {
+                Ok(client) => {
+                    self.client = Some(client);
+                    info!("Client initialized: {:?}", self.client);
+                    true
+                }
+                Err(err) => {
+                    info!("Error in creating client");
+                    self.error = Some(Error::msg(err));
+                    true
+                }
+            },
+        }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         // This gives us a component's "`Scope`" which allows us to send messages, etc to the component.
-        let link = ctx.link();
+        let _link = ctx.link();
+
         html! {
             <>
                 <nav class="navbar is-black" role="navigation" aria-label="main navigation">
@@ -65,9 +99,21 @@ impl Component for App {
                         </div>
                     </div>
                 </nav>
-                <BrowserRouter>
-                    <Switch<Route> render={Switch::render(switch)} />
-                </BrowserRouter>
+                { if self.error.is_some() {
+                    let props = SwitchProps {
+                        client: self.client.clone().unwrap(),
+                    };
+                    html!{
+                        <BrowserRouter>
+                            <Switch<Route> render={Switch::render(switch(props))} />
+                        </BrowserRouter>
+                    }
+                } else {
+                    html!{
+                        <>{"Error"}</>
+                    }
+                }
+                }
             </>
         }
     }

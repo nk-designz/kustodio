@@ -1,7 +1,5 @@
 use crate::utils::new_hero;
-use tracing::info;
 use yew::prelude::*;
-use yew_router::prelude::*;
 
 pub enum Msg {}
 
