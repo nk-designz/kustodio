@@ -1,4 +1,5 @@
 extern crate prost_build;
+use std::process;
 use std::{fs, path::PathBuf};
 use wasm_pack::{
     command::build::BuildOptions, command::build::Target, command::run_wasm_pack, command::Command,
@@ -6,8 +7,15 @@ use wasm_pack::{
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Build Protobufs ===");
-    prost_build::compile_protos(&["src/proto/swarm.proto"], &["src/proto"])?;
-    tonic_build::compile_protos("src/proto/api.proto")?;
+    prost_build::compile_protos(&["proto/swarm.proto"], &["proto"])?;
+    tonic_build::compile_protos("proto/api.proto")?;
+    process::Command::new("protoc")
+        .args([
+            "--proto_path=proto",
+            "--js_out=import_style=commonjs,binary:ui",
+            "proto/web.proto",
+        ])
+        .output()?;
 
     println!("=== Build UI ===");
     fs::create_dir_all("ui/target/build/pkg")?;
@@ -15,14 +23,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|entry| entry.unwrap().path())
         .filter(|path| match path.extension() {
             None => false,
-            Some(ext) => ext == "html",
+            Some(ext) => ext == "html" || ext == "js",
         })
     {
         println!("Found Page {:#?}", file.clone());
         fs::copy(
             file.clone(),
             format!(
-                "ui/target/build/{}",
+                "ui/dist/{}",
                 file.file_name().expect("No file name").to_str().unwrap()
             ),
         )?;

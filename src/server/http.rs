@@ -9,7 +9,7 @@ use std::{convert::Infallible, net::SocketAddr, path::Path, sync::Arc};
 const INDEX: &str = "index.html";
 
 #[derive(RustEmbed)]
-#[folder = "ui/target/build"]
+#[folder = "ui/dist"]
 struct UIAssets;
 
 async fn handle(req: Request<Body>, config: Arc<String>) -> Result<Response<Body>, Infallible> {
