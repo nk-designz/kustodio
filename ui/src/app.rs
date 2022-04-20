@@ -1,5 +1,6 @@
 use crate::{client::Client, pages::*};
 use anyhow::Error;
+use stylist::css;
 use tracing::*;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -57,7 +58,9 @@ impl Component for App {
                 Ok(client) => Ok(client.clone()),
                 Err(err) => Err(err.to_string()),
             };
-            link.callback(move |_: Msg| Msg::ClientInit(client.to_owned()));
+            info!("Created client");
+            let cb = link.callback(move |_: ()| Msg::ClientInit(client.to_owned()));
+            cb.emit(());
         });
         Self::default()
     }
@@ -67,6 +70,7 @@ impl Component for App {
             Msg::ClientInit(client_result) => match client_result {
                 Ok(client) => {
                     self.client = Some(client);
+                    self.error = None;
                     info!("Client initialized: {:?}", self.client);
                     true
                 }
@@ -82,7 +86,6 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         // This gives us a component's "`Scope`" which allows us to send messages, etc to the component.
         let _link = ctx.link();
-
         html! {
             <>
                 <nav class="navbar is-black" role="navigation" aria-label="main navigation">
@@ -99,18 +102,35 @@ impl Component for App {
                         </div>
                     </div>
                 </nav>
-                { if self.error.is_some() {
+
+                { if self.error.is_none() && self.client.is_some() {
                     let props = SwitchProps {
                         client: self.client.clone().unwrap(),
                     };
                     html!{
                         <BrowserRouter>
-                            <Switch<Route> render={Switch::render(switch(props))} />
+                            <Switch<Route> render={
+                                Switch::render(switch(props))
+                            }/>
                         </BrowserRouter>
                     }
                 } else {
                     html!{
-                        <>{"Error"}</>
+                        <div class={css!(r#"
+                                @keyframes loading {
+                                    0%   {height: 10vw; width: 10vw;}
+                                    50% {height: 20vw; width: 20vw;}
+                                    100% {height: 10vw; width: 10vw;}
+                                }
+                                border: 10px solid lightgrey;
+                                background-color: white;
+                                border-radius: 50%;
+                                position: absolute;
+                                left: 50%;
+                                top: 50%;
+                                transform: translate(-50%, -50%);
+                                animation: loading 2s infinite;
+                        "#)}></div>
                     }
                 }
                 }

@@ -27,6 +27,7 @@ web-sys = { version = "0.3.57", features = ["Location"]}
 wasm-bindgen-futures = "0.4.30"
 serde = {version = "1.0.136", features = ["serde_derive"]}
 serde_json = "1.0.79"
+stylist = { version = "0.10.0", features = ["yew", "yew_integration"]}
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
