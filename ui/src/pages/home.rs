@@ -1,3 +1,4 @@
+use crate::app::SwitchProps;
 use crate::utils::new_hero;
 use yew::prelude::*;
 
@@ -7,7 +8,7 @@ pub struct Home {}
 
 impl Component for Home {
     type Message = Msg;
-    type Properties = ();
+    type Properties = SwitchProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}

@@ -3,7 +3,7 @@ use anyhow::Error;
 use stylist::css;
 use tracing::*;
 use wasm_bindgen_futures::spawn_local;
-use yew::prelude::*;
+use yew::{prelude::*, Properties};
 use yew_router::prelude::*;
 
 pub enum Msg {
@@ -23,19 +23,20 @@ enum Route {
     NotFound,
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Properties)]
 pub struct SwitchProps {
-    client: Client,
+    #[prop_or_default]
+    pub client: Option<Client>,
 }
 
-fn switch(_props: SwitchProps) -> impl Fn(&Route) -> Html {
+fn switch(props: SwitchProps) -> impl Fn(&Route) -> Html {
     move |route| {
         info!("Switching to route {:?}", route);
         match route {
-            Route::Home => html! { <Home  /> },
+            Route::Home => html! { <Home ..props.clone()  /> },
             Route::NotFound => html! { <NotFound /> },
-            Route::Locks => html! { <Locks /> },
-            Route::System => html! { <System /> },
+            Route::Locks => html! { <Locks ..props.clone() /> },
+            Route::System => html! { <System ..props.clone() /> },
         }
     }
 }
@@ -59,8 +60,8 @@ impl Component for App {
                 Err(err) => Err(err.to_string()),
             };
             info!("Created client");
-            let cb = link.callback(move |_: ()| Msg::ClientInit(client.to_owned()));
-            cb.emit(());
+            link.callback(move |_: ()| Msg::ClientInit(client.to_owned()))
+                .emit(());
         });
         Self::default()
     }
@@ -75,7 +76,7 @@ impl Component for App {
                     true
                 }
                 Err(err) => {
-                    info!("Error in creating client");
+                    info!("Error in creating client: {}", err);
                     self.error = Some(Error::msg(err));
                     true
                 }
@@ -105,8 +106,9 @@ impl Component for App {
 
                 { if self.error.is_none() && self.client.is_some() {
                     let props = SwitchProps {
-                        client: self.client.clone().unwrap(),
+                        client: self.client.clone(),
                     };
+
                     html!{
                         <BrowserRouter>
                             <Switch<Route> render={

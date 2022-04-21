@@ -1,3 +1,4 @@
+use crate::app::SwitchProps;
 use crate::utils::new_hero;
 use tracing::info;
 use yew::prelude::*;
@@ -9,7 +10,7 @@ pub struct Locks {}
 
 impl Component for Locks {
     type Message = Msg;
-    type Properties = ();
+    type Properties = SwitchProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}

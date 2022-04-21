@@ -1,3 +1,4 @@
+use crate::app::SwitchProps;
 use crate::utils::new_hero;
 use tracing::info;
 use yew::prelude::*;
@@ -9,7 +10,7 @@ pub struct System {}
 
 impl Component for System {
     type Message = Msg;
-    type Properties = ();
+    type Properties = SwitchProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
@@ -24,7 +25,8 @@ impl Component for System {
         let link = ctx.link();
         html! {
             <>
-                 { new_hero("System", "All about your cluster", "is-primary") }
+                { new_hero("System", "All about your cluster", "is-primary") }
+                { format!("{:#?}", ctx.props().client.clone().unwrap().inner()) }
             </>
         }
     }
