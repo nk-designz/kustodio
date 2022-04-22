@@ -20,7 +20,7 @@ bloomfilter = "1.0.9"
 prost = "*"
 bytes = "1.1.0"
 log = "*"
-tonic = "0.6"
+tonic = "0.7"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 config = "0.12"
 clap = "3.1.6"
@@ -37,8 +37,10 @@ rust-embed = { version = "6.3.0", features = ["debug-embed"]}
 http = "0.2.6"
 mime_guess = "2.0.4"
 serde_json = "1.0.79"
+tonic-web = "0.3.0"
+tower = "0.4.12"
 
 [build-dependencies]
 prost-build = "*"
-tonic-build = "0.6"
+tonic-build = "0.7"
 wasm-pack = "*"

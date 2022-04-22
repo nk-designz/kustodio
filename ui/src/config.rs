@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::value::Value;
 
 #[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
 pub struct ApiConfiguration {
@@ -8,8 +7,27 @@ pub struct ApiConfiguration {
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
+pub struct ClusterConfiguration {
+    pub address: String,
+    pub peers: Vec<String>,
+}
+
+#[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
+pub struct StorageOptionsConfiguration {
+    pub items_count: usize,
+    pub bitmap_size: usize,
+}
+
+#[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
+pub struct StorageConfiguration {
+    #[serde(rename = "type")]
+    pub storage_type: String,
+    pub options: StorageOptionsConfiguration,
+}
+
+#[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
 pub struct Configuration {
-    pub cluster: Value,
-    pub storage: Value,
+    pub cluster: ClusterConfiguration,
+    pub storage: StorageConfiguration,
     pub api: ApiConfiguration,
 }

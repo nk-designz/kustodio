@@ -2,21 +2,21 @@ syntax = "proto3";
 
 package api.grpc;
 
-import "google/protobuf/empty.proto";
-
 service Locking {
   rpc Create(LockRequest) returns (LockResponse);
   rpc Remove(LockRequest) returns (LockResponse);
-  rpc List(google.protobuf.Empty) returns (ListResponse);
+  rpc List(Empty) returns (ListResponse);
 
   rpc Lock(LockRequest) returns (LockResponse);
   rpc Unlock(LockRequest) returns (LockResponse);
 
   rpc State(LockRequest) returns (LockResponse);
-  rpc Watch(google.protobuf.Empty) returns (stream LockEvent);
+  rpc Watch(Empty) returns (stream LockEvent);
 
-  rpc Peers(google.protobuf.Empty) returns (PeersResponse);
+  rpc Peers(Empty) returns (PeersResponse);
 }
+
+message Empty {}
 
 message LockRequest {
   string name = 1;

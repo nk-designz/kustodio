@@ -6,6 +6,8 @@ message LockRequest {
   string name = 1;
 }
 
+message Empty {}
+
 message LockResponse {
   oneof body {
     string error = 1;

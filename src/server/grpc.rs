@@ -3,7 +3,7 @@ use crate::proto::swarm::{
     lock_message::Action, swarm_message::Payload, LockMessage, SwarmMessage,
 };
 use crate::proto::{
-    api::list_response, api::lock_event, ListResponse, LockEvent, LockRequest, LockResponse,
+    api::list_response, api::lock_event, Empty, ListResponse, LockEvent, LockRequest, LockResponse,
     Locking, LockingServer, PeersResponse,
 };
 use crate::storage::traits::Storage;
@@ -11,8 +11,11 @@ use crate::swarm::Swarm;
 use crate::{handler::event, handler::Handler};
 use futures::Stream;
 use prost::Message;
-use std::pin::Pin;
-use std::sync::{Arc, Mutex};
+use std::{
+    pin::Pin,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 use tokio_stream::StreamExt;
 use tonic::{transport::Server, Request, Response, Status};
 
@@ -39,7 +42,7 @@ where
             )),
         }))
     }
-    async fn peers(&self, _request: Request<()>) -> Result<Response<PeersResponse>, Status> {
+    async fn peers(&self, _request: Request<Empty>) -> Result<Response<PeersResponse>, Status> {
         Ok(Response::new(PeersResponse {
             peers: self
                 .swarm
@@ -72,7 +75,7 @@ where
         Ok(Response::new(LockResponse::default()))
     }
 
-    async fn list(&self, _: Request<()>) -> Result<Response<ListResponse>, Status> {
+    async fn list(&self, _: Request<Empty>) -> Result<Response<ListResponse>, Status> {
         Ok(Response::new(ListResponse {
             locks: self
                 .handler
@@ -144,7 +147,7 @@ where
 
         Ok(Response::new(LockResponse::default()))
     }
-    async fn watch(&self, _: Request<()>) -> Result<Response<Self::WatchStream>, Status> {
+    async fn watch(&self, _: Request<Empty>) -> Result<Response<Self::WatchStream>, Status> {
         let stream = self
             .handler
             .watch(100)
@@ -178,11 +181,17 @@ pub async fn serve<S: Storage<String, Lock> + Clone + Send + Sync + 'static>(
     handler: Handler<S>,
     swarm: Arc<Mutex<Swarm<Handler<S>>>>,
 ) -> Result<(), anyhow::Error> {
+    let locker = LockingServer::new(Locker {
+        handler: handler,
+        swarm: swarm,
+    });
+    let layer = tower::ServiceBuilder::new()
+        .timeout(Duration::from_secs(30))
+        .into_inner();
     Server::builder()
-        .add_service(LockingServer::new(Locker {
-            handler: handler,
-            swarm: swarm,
-        }))
+        .accept_http1(true)
+        .layer(layer)
+        .add_service(tonic_web::config().allow_origins(vec!["*"]).enable(locker))
         .serve(addr)
         .await?;
     Ok(())
