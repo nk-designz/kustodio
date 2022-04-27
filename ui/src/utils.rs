@@ -1,3 +1,4 @@
+use wasm_bindgen::prelude::*;
 use yew::prelude::*;
 
 pub fn set_panic_hook() {
@@ -20,4 +21,9 @@ pub fn new_hero(title: &str, sub_title: &str, status: &str) -> Html {
             </div>
         </section>
     }
+}
+
+#[wasm_bindgen]
+extern "C" {
+    pub fn highlight_code();
 }

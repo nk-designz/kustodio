@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
 pub struct ApiConfiguration {
@@ -13,16 +14,10 @@ pub struct ClusterConfiguration {
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
-pub struct StorageOptionsConfiguration {
-    pub items_count: usize,
-    pub bitmap_size: usize,
-}
-
-#[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]
 pub struct StorageConfiguration {
     #[serde(rename = "type")]
     pub storage_type: String,
-    pub options: StorageOptionsConfiguration,
+    pub options: HashMap<String, usize>,
 }
 
 #[derive(PartialEq, Serialize, Deserialize, Debug, Clone)]

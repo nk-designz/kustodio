@@ -847,6 +847,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "protobuf"
+version = "2.27.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf7e6d18738ecd0902d30d1ad232c9125985a3422929b16c65517b38adc14f96"
+dependencies = [
+ "bytes",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1319,7 +1328,10 @@ name = "ui"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytes",
  "console_error_panic_hook",
+ "js-sys",
+ "protobuf",
  "reqwest",
  "serde",
  "serde_json",

@@ -43,4 +43,5 @@ tower = "0.4.12"
 [build-dependencies]
 prost-build = "*"
 tonic-build = "0.7"
+protoc-rust = "2"
 wasm-pack = "*"

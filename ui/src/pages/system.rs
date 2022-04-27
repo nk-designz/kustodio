@@ -42,7 +42,6 @@ impl Component for System {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        // This gives us a component's "`Scope`" which allows us to send messages, etc to the component.
         let _link = ctx.link();
         let config = ctx.props().client.clone().unwrap().inner();
         html! {
@@ -53,7 +52,7 @@ impl Component for System {
                         <section class="section">
                             <h2 class="title" >{"Configuration"}</h2>
                         </section>
-                        <pre><code>
+                        <pre><code class="language-toml">
                         {
                             match toml::to_string(&config) {
                                 Ok(v) => v,

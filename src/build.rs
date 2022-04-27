@@ -1,23 +1,24 @@
 extern crate prost_build;
+extern crate protoc_rust;
 use std::process;
 #[allow(unused)]
 use std::{fs, path::PathBuf};
-/* use wasm_pack::{
-    command::build::BuildOptions, command::build::Target, command::run_wasm_pack, command::Command,
-};
-*/
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Build Protobufs ===");
     prost_build::compile_protos(&["proto/swarm.proto"], &["proto"])?;
     tonic_build::compile_protos("proto/api.proto")?;
-    process::Command::new("protoc")
-        .args([
-            "--proto_path=proto",
-            "--js_out=import_style=commonjs,binary:ui",
-            "proto/web.proto",
-        ])
-        .output()?;
+    protoc_rust::Codegen::new()
+        .out_dir("ui/src/proto")
+        .inputs(&["proto/web.proto"])
+        .include("proto")
+        .customize(protoc_rust::Customize {
+            carllerche_bytes_for_bytes: Some(true),
+            carllerche_bytes_for_string: Some(true),
+            ..Default::default()
+        })
+        .run()
+        .expect("Running protoc failed.");
 
     println!("=== Build UI ===");
     fs::create_dir_all("ui/target/build/pkg")?;
