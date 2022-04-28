@@ -1,8 +1,7 @@
 extern crate prost_build;
 extern crate protoc_rust;
+use std::fs;
 use std::process;
-#[allow(unused)]
-use std::{fs, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Build Protobufs ===");
@@ -38,12 +37,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ),
         )?;
     }
-    /* let mut build_opt = BuildOptions::default();
-    build_opt.path = Some(PathBuf::new().join("ui"));
-    build_opt.out_dir = String::from("target/build/pkg");
-    build_opt.target = Target::Web;
-    run_wasm_pack(Command::Build(build_opt))?;
-    */
     process::Command::new("npm")
         .args(["--prefix", "ui", "run", "build"])
         .output()?;

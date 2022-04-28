@@ -1,10 +1,10 @@
 use crate::config::Configuration;
 use crate::proto::*;
 use anyhow::Error;
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use protobuf::Message;
 use reqwest;
-use reqwest::header::*;
+use reqwest::header::HeaderName;
 use tracing::*;
 use web_sys::window;
 
@@ -27,11 +27,22 @@ impl Eq for Client {}
 impl Client {
     pub fn new(config: Configuration, protocol: String) -> Self {
         let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert(ACCEPT, "application/grpc-web+proto".parse().unwrap());
-        headers.insert(CONTENT_TYPE, "application/grpc-web+proto".parse().unwrap());
-        headers.insert("x-user-agent", "kustodio-client/0.1".parse().unwrap());
-        headers.insert(USER_AGENT, "".parse().unwrap());
-        headers.insert("x-grpc-web", "1".parse().unwrap());
+        headers.insert(
+            HeaderName::from_bytes(b"Accept").unwrap(),
+            "application/grpc-web+proto".parse().unwrap(),
+        );
+        headers.insert(
+            HeaderName::from_bytes(b"Content-Type").unwrap(),
+            "application/grpc-web+proto".parse().unwrap(),
+        );
+        headers.insert(
+            HeaderName::from_bytes(b"x-user-agent").unwrap(),
+            "kustodio-client/0.1".parse().unwrap(),
+        );
+        headers.insert(
+            HeaderName::from_bytes(b"x-grpc-web").unwrap(),
+            "1".parse().unwrap(),
+        );
         let client = reqwest::ClientBuilder::new()
             .default_headers(headers)
             .build()
@@ -80,7 +91,6 @@ impl Client {
             .client
             .post(url)
             .body(Self::encode_body(msg))
-            .fetch_mode_no_cors()
             .send()
             .await?;
         Ok(response.bytes().await?.to_vec())
@@ -101,14 +111,20 @@ impl Client {
         }
         buf.split_to(len + GRPC_HEADER_SIZE).freeze()
     }
+    async fn decode_body(body: Vec<u8>) -> Bytes {
+        let mut body = Bytes::from(body);
+        body.advance(1);
+        let len = body.get_u32();
+        body.split_to(len as usize)
+    }
     pub async fn peers(&self) -> Result<Vec<String>, Error> {
         let req = Empty::new();
         let bytes = self
             .request("Peers", protobuf::Message::write_to_bytes(&req)?)
             .await?;
         let mut resp = PeersResponse::new();
-        resp.merge_from_bytes(&bytes)?;
-        info!("{:#?}", resp.get_peers());
-        Ok(vec![])
+        let proto = Self::decode_body(bytes.clone()).await;
+        resp.merge_from_bytes(&proto.to_vec())?;
+        Ok(resp.get_peers().iter().map(|cs| cs.to_string()).collect())
     }
 }

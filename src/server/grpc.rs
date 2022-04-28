@@ -18,6 +18,7 @@ use std::{
 };
 use tokio_stream::StreamExt;
 use tonic::{transport::Server, Request, Response, Status};
+use tower_http::trace::TraceLayer;
 
 pub struct Locker<S: Storage<String, Lock> + Clone + Send + 'static> {
     handler: Handler<S>,
@@ -187,11 +188,12 @@ pub async fn serve<S: Storage<String, Lock> + Clone + Send + Sync + 'static>(
     });
     let layer = tower::ServiceBuilder::new()
         .timeout(Duration::from_secs(30))
+        .layer(TraceLayer::new_for_http())
         .into_inner();
     Server::builder()
         .accept_http1(true)
         .layer(layer)
-        .add_service(tonic_web::config().allow_origins(vec!["*"]).enable(locker))
+        .add_service(tonic_web::config().allow_all_origins().enable(locker))
         .serve(addr)
         .await?;
     Ok(())

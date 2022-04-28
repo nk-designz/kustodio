@@ -51,7 +51,7 @@ async fn handle(req: Request<Body>, config: Arc<String>) -> Result<Response<Body
 
 pub async fn serve(addr: SocketAddr, config: KustodioConfiguration) -> Result<(), anyhow::Error> {
     for i in UIAssets::iter() {
-        info!("{}", i);
+        debug!("{}", i);
     }
     let context = Arc::new(serde_json::to_string(&config)?);
     let service = make_service_fn(move |_| {

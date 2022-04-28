@@ -61,8 +61,38 @@ impl Component for System {
                         }
                         </code></pre>
                     </div>
-                    <div class="column">{ format!("{:#?}", self.peers) }</div>
-                    <div class="column"></div>
+                    <div class="column">
+                        <section class="section">
+                            <h2 class="title" >{"Peers"}</h2>
+                        </section>
+                        <table class="table is-fullwidth is-hoverable">
+                            <thead>
+                                <tr>
+                                    <th>{"Address"}</th>
+                                    <th>{"Status"}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {
+                                self.peers
+                                    .iter()
+                                    .map(
+                                        |peer| html!{
+                                            <tr>
+                                                <th>{peer}</th>
+                                                <th>
+                                                    <span class="tag is-light">
+                                                        {"unknown"}
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                        }
+                                    )
+                                    .collect::<Html>()
+                            }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </>
         }
