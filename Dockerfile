@@ -1,11 +1,13 @@
 FROM rust:1.59.0-buster as builder
 ENV USER root
+RUN apt update && apt install npm cmake -y
 RUN rustup component add rustfmt
 RUN rustup target add wasm32-unknown-unknown
 WORKDIR /kustodio
 ADD Cargo.toml Cargo.toml
 ADD Cargo.lock Cargo.lock
 COPY src src
+COPY proto proto
 RUN mkdir ui
 ADD ui/Cargo.toml ui/Cargo.toml
 ADD ui/Cargo.lock ui/Cargo.lock

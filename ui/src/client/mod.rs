@@ -127,4 +127,58 @@ impl Client {
         resp.merge_from_bytes(&proto.to_vec())?;
         Ok(resp.get_peers().iter().map(|cs| cs.to_string()).collect())
     }
+    pub async fn list(&self) -> Result<Vec<ListResponse_Lock>, Error> {
+        let req = Empty::new();
+        let bytes = self
+            .request("List", protobuf::Message::write_to_bytes(&req)?)
+            .await?;
+        let mut resp = ListResponse::new();
+        let proto = Self::decode_body(bytes.clone()).await;
+        resp.merge_from_bytes(&proto.to_vec())?;
+        Ok(resp.get_locks().to_owned())
+    }
+    pub async fn create(&self, name: &str) -> Result<LockResponse, Error> {
+        let mut req = LockRequest::new();
+        req.set_name(name.into());
+        let bytes = self
+            .request("Create", protobuf::Message::write_to_bytes(&req)?)
+            .await?;
+        let mut resp = LockResponse::new();
+        let proto = Self::decode_body(bytes.clone()).await;
+        resp.merge_from_bytes(&proto.to_vec())?;
+        Ok(resp)
+    }
+    pub async fn lock(&self, name: &str) -> Result<LockResponse, Error> {
+        let mut req = LockRequest::new();
+        req.set_name(name.into());
+        let bytes = self
+            .request("Lock", protobuf::Message::write_to_bytes(&req)?)
+            .await?;
+        let mut resp = LockResponse::new();
+        let proto = Self::decode_body(bytes.clone()).await;
+        resp.merge_from_bytes(&proto.to_vec())?;
+        Ok(resp)
+    }
+    pub async fn unlock(&self, name: &str) -> Result<LockResponse, Error> {
+        let mut req = LockRequest::new();
+        req.set_name(name.into());
+        let bytes = self
+            .request("Unlock", protobuf::Message::write_to_bytes(&req)?)
+            .await?;
+        let mut resp = LockResponse::new();
+        let proto = Self::decode_body(bytes.clone()).await;
+        resp.merge_from_bytes(&proto.to_vec())?;
+        Ok(resp)
+    }
+    pub async fn remove(&self, name: &str) -> Result<LockResponse, Error> {
+        let mut req = LockRequest::new();
+        req.set_name(name.into());
+        let bytes = self
+            .request("Remove", protobuf::Message::write_to_bytes(&req)?)
+            .await?;
+        let mut resp = LockResponse::new();
+        let proto = Self::decode_body(bytes.clone()).await;
+        resp.merge_from_bytes(&proto.to_vec())?;
+        Ok(resp)
+    }
 }
