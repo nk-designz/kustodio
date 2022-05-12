@@ -13,8 +13,8 @@ pub fn api_addr_from_cluster_addr(_cluster_addr: String) -> String {
 pub fn status_from_age(id: u16, age: u16) -> u32 {
     let mut peers = PEERS_AGE.lock().unwrap();
     match peers.insert(id, age) {
-        Some(old_age) => {
-            if old_age < age {
+        Some(old) => {
+            if old == age {
                 1
             } else {
                 0

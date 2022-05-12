@@ -2,6 +2,7 @@ use crate::app::SwitchProps;
 use crate::client::Client;
 use crate::proto::*;
 use crate::utils::new_hero;
+use tracing::*;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -80,10 +81,11 @@ impl Component for System {
                                     .map(
                                         |peer| {
                                             let peer = peer.clone();
+                                            info!("Status: {}", peer.status);
                                             let status = match peer.status {
-                                                _ => ("Unknown", "is-light"),
                                                 0 => ("Error", "is-danger"),
                                                 1 => ("Running", "is-success"),
+                                                _ => ("Unknown", "is-light"),
 
                                             };
                                             html!{
