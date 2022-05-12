@@ -90,7 +90,7 @@ impl Cli {
                         println!("Peers:");
                         client.peers().await.map(|res| {
                             for peer in res.peers.clone() {
-                                println!("- {}", peer)
+                                println!("- {}", peer.cluster_address)
                             }
                         })?;
                     }

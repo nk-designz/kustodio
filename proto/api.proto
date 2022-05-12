@@ -41,7 +41,12 @@ message LockEvent {
 }
 
 message PeersResponse {
-  repeated string peers = 1;
+  message Peer {
+    uint32 status = 1;
+    string cluster_address = 2;
+    string api_address = 3;
+  }
+  repeated Peer peers = 1;
 }
 
 message ListResponse {

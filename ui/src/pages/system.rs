@@ -1,16 +1,17 @@
 use crate::app::SwitchProps;
 use crate::client::Client;
+use crate::proto::*;
 use crate::utils::new_hero;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
 pub enum Msg {
-    Peers(Result<Vec<String>, String>),
+    Peers(Result<Vec<PeersResponse_Peer>, String>),
 }
 
 pub struct System {
     client: Client,
-    peers: Vec<String>,
+    peers: Vec<PeersResponse_Peer>,
     error: Option<anyhow::Error>,
 }
 
@@ -77,15 +78,28 @@ impl Component for System {
                                 self.peers
                                     .iter()
                                     .map(
-                                        |peer| html!{
+                                        |peer| {
+                                            let peer = peer.clone();
+                                            let status = match peer.status {
+                                                _ => ("Unknown", "is-light"),
+                                                0 => ("Error", "is-danger"),
+                                                1 => ("Running", "is-success"),
+
+                                            };
+                                            html!{
                                             <tr>
-                                                <th>{peer}</th>
                                                 <th>
-                                                    <span class="tag is-light">
-                                                        {"unknown"}
+                                                    <a href={peer.api_address.to_string()}>
+                                                        {peer.cluster_address.to_string()}
+                                                    </a>
+                                                </th>
+                                                <th>
+                                                    <span class={format!("tag {}", status.1)}>
+                                                        {status.0}
                                                     </span>
                                                 </th>
                                             </tr>
+                                            }
                                         }
                                     )
                                     .collect::<Html>()

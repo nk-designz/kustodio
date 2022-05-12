@@ -17,7 +17,7 @@
 #![allow(trivial_casts)]
 #![allow(unused_imports)]
 #![allow(unused_results)]
-//! Generated file from `web.proto`
+//! Generated file from `api.proto`
 
 /// Generated files are compatible only with the same version
 /// of protobuf runtime.
@@ -1549,7 +1549,7 @@ impl ::protobuf::reflect::ProtobufValue for ListResponse_Lock {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\tweb.proto\x12\x08api.grpc\"\x07\n\x05Empty\"!\n\x0bLockRequest\x12\
+    \n\tapi.proto\x12\x08api.grpc\"\x07\n\x05Empty\"!\n\x0bLockRequest\x12\
     \x12\n\x04name\x18\x01\x20\x01(\tR\x04name\"F\n\x0cLockResponse\x12\x16\
     \n\x05error\x18\x01\x20\x01(\tH\0R\x05error\x12\x16\n\x05state\x18\x02\
     \x20\x01(\x08H\0R\x05stateB\x06\n\x04body\"\x91\x01\n\tLockEvent\x12\x12\

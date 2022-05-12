@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::compile_protos("proto/api.proto")?;
     protoc_rust::Codegen::new()
         .out_dir("ui/src/proto")
-        .inputs(&["proto/web.proto"])
+        .inputs(&["proto/api.proto"])
         .include("proto")
         .customize(protoc_rust::Customize {
             carllerche_bytes_for_bytes: Some(true),

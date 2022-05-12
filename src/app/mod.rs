@@ -20,6 +20,7 @@ impl App {
         })
     }
     pub async fn serve(&self) -> Result<(), anyhow::Error> {
+        console_subscriber::init();
         let storage = match self.config.storage.clone() {
             StorageConfiguration::Memory(config) => storage::memory::Memory::new(config),
         };

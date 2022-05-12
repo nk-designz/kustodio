@@ -12,5 +12,6 @@ pub use api::{
     lock_event::Status,
     locking_client::LockingClient,
     locking_server::{Locking, LockingServer},
+    peers_response::Peer,
     Empty, ListResponse, LockEvent, LockRequest, LockResponse, PeersResponse,
 };

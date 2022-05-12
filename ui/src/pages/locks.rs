@@ -110,6 +110,7 @@ impl Component for Locks {
                                             .map_err(|_| ())
                                             .unwrap();
                                         let name = input.value();
+                                        input.set_value("");
                                         Msg::Create(name)
                                     })
                                 }
@@ -151,7 +152,7 @@ impl Component for Locks {
                                     }
                                     </th>
                                     <th>
-                                        <button class="button is-info" onclick={toggle}>
+                                        <button class="button is-warning mr-3" onclick={toggle}>
                                             {match lock.state { false => "Lock", true => "Unlock"}}
                                         </button>
                                         <button class="button is-danger" onclick={remove}>

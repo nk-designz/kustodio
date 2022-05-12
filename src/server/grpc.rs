@@ -4,7 +4,7 @@ use crate::proto::swarm::{
 };
 use crate::proto::{
     api::list_response, api::lock_event, Empty, ListResponse, LockEvent, LockRequest, LockResponse,
-    Locking, LockingServer, PeersResponse,
+    Locking, LockingServer, Peer, PeersResponse,
 };
 use crate::storage::traits::Storage;
 use crate::swarm::Swarm;
@@ -44,16 +44,19 @@ where
         }))
     }
     async fn peers(&self, _request: Request<Empty>) -> Result<Response<PeersResponse>, Status> {
-        Ok(Response::new(PeersResponse {
-            peers: self
-                .swarm
-                .lock()
-                .unwrap()
-                .peers()
-                .iter()
-                .map(|peer| peer.address().to_string())
-                .collect::<Vec<String>>(),
-        }))
+        let peers = self
+            .swarm
+            .lock()
+            .unwrap()
+            .peers()
+            .iter()
+            .map(|peer| Peer {
+                cluster_address: peer.address().to_string(),
+                api_address: String::new(),
+                status: 3,
+            })
+            .collect::<Vec<Peer>>();
+        Ok(Response::new(PeersResponse { peers }))
     }
     async fn create(
         &self,

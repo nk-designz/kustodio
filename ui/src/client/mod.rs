@@ -117,7 +117,7 @@ impl Client {
         let len = body.get_u32();
         body.split_to(len as usize)
     }
-    pub async fn peers(&self) -> Result<Vec<String>, Error> {
+    pub async fn peers(&self) -> Result<Vec<PeersResponse_Peer>, Error> {
         let req = Empty::new();
         let bytes = self
             .request("Peers", protobuf::Message::write_to_bytes(&req)?)
@@ -125,7 +125,7 @@ impl Client {
         let mut resp = PeersResponse::new();
         let proto = Self::decode_body(bytes.clone()).await;
         resp.merge_from_bytes(&proto.to_vec())?;
-        Ok(resp.get_peers().iter().map(|cs| cs.to_string()).collect())
+        Ok(resp.get_peers().to_owned())
     }
     pub async fn list(&self) -> Result<Vec<ListResponse_Lock>, Error> {
         let req = Empty::new();

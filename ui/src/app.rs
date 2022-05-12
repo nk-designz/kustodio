@@ -1,6 +1,6 @@
 use crate::{client::Client, pages::*};
 use anyhow::Error;
-use stylist::css;
+use stylist::{css, style, yew::Global};
 use tracing::*;
 use wasm_bindgen_futures::spawn_local;
 use yew::{prelude::*, Properties};
@@ -89,6 +89,11 @@ impl Component for App {
         let _link = ctx.link();
         html! {
             <>
+                <Global css={r#"
+                    body {
+                        min-height: 100vh;
+                    }
+                "#}></Global>
                 <nav class="navbar is-black" role="navigation" aria-label="main navigation">
                     <div class="navbar-brand">
                         <a class="navbar-item" href="https://github.com/nk-designz/kustodio">
@@ -136,6 +141,18 @@ impl Component for App {
                     }
                 }
                 }
+                <footer class={format!("footer {}", style!(r#"
+                    position: absolute;
+                    width: 100vw;
+                    bottom: 0;
+                    left: 0;
+                "#).unwrap().get_class_name())}>
+                    <div class="content has-text-centered">
+                        <p>
+                            <strong>{"Kustodio"}</strong>{" by "}<a href="https://github.com/nk-designz">{"nk-designz"}</a>{"."}
+                        </p>
+                    </div>
+                </footer>
             </>
         }
     }

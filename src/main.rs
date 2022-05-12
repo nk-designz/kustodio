@@ -16,7 +16,10 @@ mod swarm;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    env_logger::init();
+    env_logger::Builder::new()
+        .format_target(true)
+        .parse_env("RUST_LOG")
+        .init();
     cli::Cli::run().await?;
     Ok(())
 }
