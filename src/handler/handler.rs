@@ -117,7 +117,10 @@ where
     }
 
     fn send(&self, event: Event) {
-        let handle = Handle::current();
+        let handle = match Handle::try_current() {
+            Ok(handle) => handle,
+            Err(_) => tokio::runtime::Runtime::new().unwrap().handle().to_owned(),
+        };
         let handler = self.clone();
         handle.spawn_blocking(move || {
             for sender in match handler.sender.lock() {
