@@ -8,6 +8,7 @@ use crate::proto::{
 };
 use crate::storage::traits::Storage;
 use crate::swarm::Swarm;
+use crate::util::*;
 use crate::{handler::event, handler::Handler};
 use futures::Stream;
 use prost::Message;
@@ -44,6 +45,7 @@ where
         }))
     }
     async fn peers(&self, _request: Request<Empty>) -> Result<Response<PeersResponse>, Status> {
+        let mut peer_inc: u16 = 0;
         let peers = self
             .swarm
             .lock()
@@ -52,8 +54,8 @@ where
             .iter()
             .map(|peer| Peer {
                 cluster_address: peer.address().to_string(),
-                api_address: String::new(),
-                status: 3,
+                api_address: api_addr_from_cluster_addr(peer.address().to_string()),
+                status: status_from_age(inc(&mut peer_inc), peer.age()),
             })
             .collect::<Vec<Peer>>();
         Ok(Response::new(PeersResponse { peers }))

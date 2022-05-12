@@ -917,6 +917,7 @@ dependencies = [
  "hashbrown 0.12.0",
  "http",
  "hyper",
+ "lazy_static",
  "log",
  "mime_guess",
  "nano-id",

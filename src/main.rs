@@ -13,6 +13,7 @@ mod proto;
 mod server;
 mod storage;
 mod swarm;
+mod util;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {

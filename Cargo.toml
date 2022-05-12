@@ -41,6 +41,7 @@ tonic-web = "0.3.0"
 tower = "0.4.12"
 tower-http = { version = "0.3.0", features = ["trace"]}
 console-subscriber = "0.1.5"
+lazy_static = "1.4.0"
 
 [build-dependencies]
 prost-build = "*"
